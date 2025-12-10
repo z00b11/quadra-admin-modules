@@ -5,5 +5,5 @@ import com.wuyunbin.quadra.admin.domain.Admin;
 import java.util.List;
 
 public interface GetAdminListUseCase {
-    List<Admin> execute();
+    List<Admin> getList();
 }

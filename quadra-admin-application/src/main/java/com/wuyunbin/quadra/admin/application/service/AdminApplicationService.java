@@ -3,20 +3,14 @@ package com.wuyunbin.quadra.admin.application.service;
 import com.wuyunbin.quadra.admin.application.usecase.*;
 import com.wuyunbin.quadra.admin.domain.Admin;
 import com.wuyunbin.quadra.admin.domain.port.AdminRepository;
-import com.wuyunbin.quadra.admin.domain.value.Avatar;
-import com.wuyunbin.quadra.admin.domain.value.Password;
-import com.wuyunbin.quadra.admin.domain.value.PageResult;
 import com.wuyunbin.quadra.admin.domain.service.AdminDomainService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.context.ApplicationEventPublisher;
+import com.wuyunbin.quadra.admin.domain.value.PageResult;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -26,7 +20,8 @@ public class AdminApplicationService implements
         SoftDeleteAdminsUseCase,
         GetAdminByIdUseCase,
         GetAdminByUsernameUseCase,
-        ListAdminsPageUseCase {
+        ListAdminsPageUseCase,
+        GetAdminListUseCase {
 
     @Autowired
     private AdminRepository adminRepository;
@@ -36,8 +31,6 @@ public class AdminApplicationService implements
 
     @Autowired
     private AdminDomainService adminDomainService;
-
-    private static final Logger log = LoggerFactory.getLogger(AdminApplicationService.class);
 
     @Override
     /**
@@ -59,7 +52,7 @@ public class AdminApplicationService implements
         adminDomainService.disableAll(admins);
         adminRepository.saveAll(admins);
         admins.forEach(a -> {
-            java.util.List<Object> events = a.pullDomainEvents();
+            List<Object> events = a.pullDomainEvents();
             publishEvents(a, events);
         });
     }
@@ -71,7 +64,7 @@ public class AdminApplicationService implements
         adminDomainService.softDeleteAll(admins);
         adminRepository.saveAll(admins);
         admins.forEach(a -> {
-            java.util.List<Object> events = a.pullDomainEvents();
+            List<Object> events = a.pullDomainEvents();
             publishEvents(a, events);
         });
     }
@@ -86,17 +79,22 @@ public class AdminApplicationService implements
     }
 
     @Override
-    public Optional<Admin> get(Long id) {
-        return adminRepository.findById(id);
+    public Admin get(Long id) {
+        return adminDomainService.idVerify(id);
     }
 
     @Override
-    public Optional<Admin> get(String username) {
-        return adminRepository.findByUsername(username);
+    public Admin get(String username) {
+        return adminDomainService.usernameVerify(username);
     }
 
     @Override
     public PageResult<Admin> page(int page, int size) {
         return adminRepository.page(page, size);
+    }
+
+    @Override
+    public List<Admin> getList() {
+        return adminRepository.findAll();
     }
 }

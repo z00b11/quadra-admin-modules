@@ -11,12 +11,12 @@ import java.util.regex.Pattern;
 
 /**
  * 领域服务（Domain Service）
- *
+ * <p>
  * 说明：
  * - 当业务规则需要查询仓储（如唯一性校验）、跨聚合编排或策略验证时，
- *   优先放入领域服务；实体（聚合根）保持本地不变式与状态变更。
+ * 优先放入领域服务；实体（聚合根）保持本地不变式与状态变更。
  * - 本类不依赖 Spring，仅通过构造器注入仓储接口，便于在应用层装配。
- *
+ * <p>
  * 使用建议：
  * - 在应用服务中注入并调用本服务，随后统一持久化与发布事件。
  */
@@ -32,13 +32,13 @@ public final class AdminDomainService {
      * 创建管理员聚合，包含：用户名唯一性校验、设置默认状态、密码加密与事件产生。
      * 应用层负责调用仓储保存与事件发布。
      */
-    public Admin createAdmin(String username, String rawPassword,String avatar) {
+    public Admin createAdmin(String username, String rawPassword, String avatar) {
         if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("username required");
         }
 
-        if(avatar==null || avatar.isBlank()){
-            avatar="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+        if (avatar == null || avatar.isBlank()) {
+            avatar = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
         }
 
         adminRepository.findByUsername(username).ifPresent(a -> {
@@ -146,4 +146,35 @@ public final class AdminDomainService {
         });
         return admins;
     }
+
+    public Admin idVerify(Long id) {
+        Admin admin = adminRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Id不存在"));
+        adminValidVerify(admin);
+        return admin;
+    }
+
+    public Admin usernameVerify(String username) {
+        Admin admin = adminRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("用户名不存在"));
+        adminValidVerify(admin);
+        return admin;
+    }
+
+    private static void adminValidVerify(Admin admin) {
+        if (admin.isDeleted()) {
+            throw new IllegalArgumentException("Id不存在");
+        }
+        if (!admin.isEnabled()) {
+            throw new IllegalArgumentException("账号被封禁");
+        }
+    }
+
+    public Admin loginVerify(String username, String password){
+        Admin admin = adminRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("用户名不存在"));
+        if(!admin.verifyPassword(password)) {
+            throw new IllegalArgumentException("invalid username or password");
+        }
+        return admin;
+    }
+
+
 }

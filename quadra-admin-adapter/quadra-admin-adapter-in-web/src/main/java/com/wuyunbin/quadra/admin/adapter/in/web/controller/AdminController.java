@@ -1,37 +1,18 @@
 package com.wuyunbin.quadra.admin.adapter.in.web.controller;
 
-import com.wuyunbin.quadra.admin.adapter.in.web.dto.AdminListRequestDTO;
-import com.wuyunbin.quadra.admin.adapter.in.web.dto.AdminCreateRequestDTO;
-import com.wuyunbin.quadra.admin.adapter.in.web.dto.AdminUpdateRequestDTO;
-import com.wuyunbin.quadra.admin.adapter.in.web.dto.BatchIdsRequestDTO;
-import com.wuyunbin.quadra.admin.adapter.in.web.dto.LoginRequestDTO;
-import com.wuyunbin.quadra.admin.application.usecase.GetAdminListUseCase;
-import com.wuyunbin.quadra.admin.application.usecase.CreateAdminUseCase;
-import com.wuyunbin.quadra.admin.application.usecase.UpdateAdminUseCase;
-import com.wuyunbin.quadra.admin.application.usecase.DisableAdminsUseCase;
-import com.wuyunbin.quadra.admin.application.usecase.SoftDeleteAdminsUseCase;
-import com.wuyunbin.quadra.admin.application.usecase.GetAdminByIdUseCase;
-import com.wuyunbin.quadra.admin.application.usecase.GetAdminByUsernameUseCase;
-import com.wuyunbin.quadra.admin.application.usecase.ListAdminsPageUseCase;
-import com.wuyunbin.quadra.admin.domain.Admin;
+import com.wuyunbin.quadra.admin.adapter.in.web.dto.*;
+import com.wuyunbin.quadra.admin.application.usecase.*;
 import com.wuyunbin.quadra.admin.common.Result;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.wuyunbin.quadra.admin.domain.Admin;
+import com.wuyunbin.quadra.admin.domain.value.PageResult;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import com.wuyunbin.quadra.admin.adapter.in.web.dto.PageResponseDTO;
-import com.wuyunbin.quadra.admin.domain.value.PageResult;
 
 @Slf4j
 @RestController
@@ -59,7 +40,7 @@ public class AdminController {
     @GetMapping("index")
     @Operation(summary = "管理员列表")
     public Result<List<AdminListRequestDTO>> index(){
-        List<Admin> admins = getAdminListUseCase.execute();
+        List<Admin> admins = getAdminListUseCase.getList();
         List<AdminListRequestDTO> list = admins.stream()
                 .map(a -> new AdminListRequestDTO(
                         a.getId(),
@@ -106,14 +87,14 @@ public class AdminController {
     @GetMapping("{id}")
     @Operation(summary = "根据ID查询管理员")
     public Result<AdminListRequestDTO> getById(@PathVariable Long id) {
-        Admin a = getAdminByIdUseCase.get(id).orElseThrow();
+        Admin a = getAdminByIdUseCase.get(id);
         return Result.success(new AdminListRequestDTO(a.getId(), a.getUsername(), a.getAvatar() != null ? a.getAvatar().getUrl() : null));
     }
 
     @GetMapping("by-username")
     @Operation(summary = "根据用户名查询管理员")
     public Result<AdminListRequestDTO> getByUsername(@RequestParam String username) {
-        Admin a = getAdminByUsernameUseCase.get(username).orElseThrow();
+        Admin a = getAdminByUsernameUseCase.get(username);
         return Result.success(new AdminListRequestDTO(a.getId(), a.getUsername(), a.getAvatar() != null ? a.getAvatar().getUrl() : null));
     }
 
